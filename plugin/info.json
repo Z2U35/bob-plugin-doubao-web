@@ -1,9 +1,9 @@
 {
   "identifier": "com.z2u35.bob.doubaoweb",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "category": "translate",
   "name": "豆包网页翻译",
-  "summary": "豆包网页翻译；支持本机登录助手自动获取会话，也可手动填写 Cookie。非官方测试版。",
+  "summary": "豆包网页翻译；推荐自行填写 Cookie，无需额外程序；保留本机登录助手作为备选。非官方测试版。",
   "icon": "132",
   "author": "Z2U35",
   "homepage": "https://github.com/Z2U35/bob-plugin-doubao-web",
@@ -19,13 +19,13 @@
       "identifier": "loginMode",
       "type": "menu",
       "title": "登录方式",
-      "defaultValue": "auto",
+      "defaultValue": "manual",
       "menuValues": [
-        { "title": "自动：登录助手（已填 Cookie 时优先使用 Cookie）", "value": "auto" },
-        { "title": "仅登录助手", "value": "helper" },
-        { "title": "手动 Cookie", "value": "manual" }
+        { "title": "手动 Cookie（推荐，无需助手）", "value": "manual" },
+        { "title": "登录助手（备选）", "value": "helper" },
+        { "title": "自动选择（兼容旧版：Cookie 优先，空时用助手）", "value": "auto" }
       ],
-      "desc": "自动模式需安装并保持 Doubao Login Helper 运行。在助手内完成豆包官方登录，首次验证时核对一次配对码；无需手动找 Cookie。"
+      "desc": "推荐在自己的浏览器登录豆包并填写 Cookie，不需要安装或运行助手。不方便找 Cookie 时可选登录助手。旧版升级可能保留原选项，可自行切换；手动模式不会自动回退到助手。"
     },
     {
       "identifier": "service",
@@ -43,14 +43,14 @@
     {
       "identifier": "cookie",
       "type": "text",
-      "title": "Cookie（手动模式可选）",
+      "title": "Cookie（手动模式必填）",
       "defaultValue": "",
       "textConfig": {
         "type": "secure",
         "height": 44,
         "placeholderText": "粘贴豆包请求头 Cookie 的完整值（不是 API Key）"
       },
-      "desc": "使用助手时留空。手动模式从已登录的 www.doubao.com 请求头复制；过期后自行更新。验证会发送 Hello, world! 测试。不要分享 Cookie。"
+      "desc": "浏览器登录豆包 → 开发者工具 Network → 刷新 → 选 www.doubao.com 请求 → Headers / Request Headers → 复制 Cookie 完整值。不是 Application 表里的单个值。留空点验证可打开登录帮助链接；填好验证会发送 Hello, world!。选择登录助手时可留空。不要分享 Cookie。"
     },
     {
       "identifier": "userAgent",

@@ -179,8 +179,9 @@ async function perform(host, options, query, onItem) {
         });
     }
     try {
-        var mode = options.loginMode || "auto";
-        if (["auto", "helper", "manual"].indexOf(mode) < 0) throw core.fail("service", "param");
+        // Preserve explicit legacy choices, but never contact the helper by default.
+        var mode = options.loginMode || "manual";
+        if (["auto", "helper", "manual"].indexOf(mode) < 0) throw core.fail("loginMode", "param");
         var manual = mode === "manual" || (mode === "auto" && !!String(options.cookie || "").trim());
         if (manual) {
             context.cookie = core.normalizeCookie(options.cookie);
@@ -201,6 +202,9 @@ async function perform(host, options, query, onItem) {
     } catch (error) {
         if (context.helperToken && error && error.type === "secretKey" && !context.cancelled) {
             await helper.showLogin(host, context.helperToken, context.signal);
+            var loginError = core.fail("helperLogin", "secretKey", error.safeCode);
+            loginError.troubleshootingLink = helper.LOGIN_URL;
+            throw loginError;
         }
         throw error;
     } finally {

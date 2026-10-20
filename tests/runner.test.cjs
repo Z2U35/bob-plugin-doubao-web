@@ -6,6 +6,8 @@ var fs = require("node:fs");
 var path = require("node:path");
 var vm = require("node:vm");
 var runner = require("../plugin/runner.js");
+var helper = require("../plugin/helper.js");
+var messages = require("../plugin/messages.js");
 var fake = require("./fake-bob.cjs");
 
 var OPTIONS = { cookie: "sessionid=FAKE_TEST_CREDENTIAL", service: "1" };
@@ -81,6 +83,53 @@ test("missing Cookie rejects locally and makes no network requests", async funct
     var result = await translate(host, {}, { cookie: "", loginMode: "manual" });
     assert.equal(host.calls.length, 0);
     assert.equal(result.replies[0].error.type, "secretKey");
+    assert.equal(result.replies[0].error.message, messages.cookieMissing);
+    assert.equal(result.replies[0].error.troubleshootingLink, "https://www.doubao.com/");
+});
+
+test("unset login mode defaults to manual even when helper pairing exists", async function () {
+    for (var mode of [undefined, "", null]) {
+        var host = fake.createHost();
+        var pairing = JSON.stringify({ version: 1, token: "a".repeat(64) });
+        host.files.set(helper.FILE, pairing);
+        var result = await translate(host, {}, { loginMode: mode, cookie: "  " });
+        assert.equal(host.calls.length, 0);
+        assert.equal(result.replies[0].error.message, messages.cookieMissing);
+        assert.equal(host.files.get(helper.FILE), pairing);
+    }
+});
+
+test("fresh validation offers official login guidance without contacting any server", async function () {
+    var host = fake.createHost();
+    var results = [];
+    await runner.validate(host, {}, function (value) { results.push(value); });
+    assert.equal(results.length, 1);
+    assert.equal(results[0].result, false);
+    assert.equal(results[0].error.message, messages.cookieMissing);
+    assert.equal(results[0].error.troubleshootingLink, "https://www.doubao.com/");
+    assert.equal(host.calls.length, 0);
+    assert.equal(host.files.has(helper.FILE), false);
+});
+
+test("malformed manual Cookie never falls back to a helper or exposes pasted text", async function () {
+    for (var mode of [undefined, "manual", "auto"]) {
+        var host = fake.createHost();
+        var result = await translate(host, {}, {
+            loginMode: mode, cookie: "sessionid=FAKE_PRIVATE\r\nX-Injected: FAKE_SECRET"
+        });
+        assert.equal(host.calls.length, 0);
+        assert.equal(result.replies[0].error.message, messages.cookieFormat);
+        assert.equal(result.replies[0].error.troubleshootingLink, "https://www.doubao.com/");
+        assert.equal(JSON.stringify(result).includes("FAKE_PRIVATE"), false);
+    }
+});
+
+test("invalid login mode gives its own local configuration error", async function () {
+    var host = fake.createHost();
+    var result = await translate(host, {}, { loginMode: "unsupported", cookie: OPTIONS.cookie });
+    assert.equal(host.calls.length, 0);
+    assert.equal(result.replies[0].error.type, "param");
+    assert.equal(result.replies[0].error.message, messages.loginMode);
 });
 
 test("invalid target and oversized text reject before sending credentials", async function () {
@@ -225,6 +274,20 @@ test("validation does not claim success for expired credentials", async function
     assert.equal(results[0].error.type, "secretKey");
 });
 
+test("expired pasted Cookie requires manual renewal and never switches accounts via the helper", async function () {
+    for (var mode of [undefined, "manual", "auto"]) {
+        var host = fake.createHost({ mime: "application/json", body: '{"code":710012001}' });
+        var pairing = JSON.stringify({ version: 1, token: "a".repeat(64) });
+        host.files.set(helper.FILE, pairing);
+        var result = await translate(host, {}, { loginMode: mode, cookie: OPTIONS.cookie });
+        assert.equal(host.calls.length, 2);
+        assert.ok(host.calls.every(function (call) { return new URL(call.url).origin === "https://www.doubao.com"; }));
+        assert.equal(result.replies[0].error.message, messages.login + " (710012001)");
+        assert.equal(result.replies[0].error.troubleshootingLink, "https://www.doubao.com/");
+        assert.equal(host.files.get(helper.FILE), pairing);
+    }
+});
+
 test("legacy completion fallback still works", async function () {
     var results = [];
     await runner.translate(fake.createHost(), OPTIONS, { text: "Hello", from: "en", to: "zh-Hans" },
@@ -276,4 +339,7 @@ test("metadata is valid and credentials have an empty secure input", function ()
     var cookie = info.options.find(function (option) { return option.identifier === "cookie"; });
     assert.equal(cookie.defaultValue, "");
     assert.equal(cookie.textConfig.type, "secure");
+    var mode = info.options.find(function (option) { return option.identifier === "loginMode"; });
+    assert.equal(mode.defaultValue, "manual");
+    assert.deepEqual(mode.menuValues.map(function (item) { return item.value; }), ["manual", "helper", "auto"]);
 });

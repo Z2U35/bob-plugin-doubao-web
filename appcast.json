@@ -2,6 +2,14 @@
   "identifier": "com.z2u35.bob.doubaoweb",
   "versions": [
     {
+      "version": "0.2.1",
+      "desc": "豆包网页翻译；推荐自行填写 Cookie，无需额外程序；保留本机登录助手作为备选。非官方测试版。真实账号翻译尚待人工验收。",
+      "sha256": "e730cb067e370be158a9280bcd4c5cc79e81af7f1cd14d4edd9783da8d80f6b5",
+      "url": "https://github.com/Z2U35/bob-plugin-doubao-web/releases/download/v0.2.1/DoubaoWebTranslate-0.2.1.bobplugin",
+      "minBobVersion": "1.21.0",
+      "timestamp": 1792505409936
+    },
+    {
       "version": "0.2.0",
       "desc": "测试预览版：新增 macOS 官方网页登录助手、显式本机配对、自动读取登录态；保留手动 Cookie。助手未经过 Apple 公证，真实账号翻译待验证。",
       "sha256": "c87978e7be52ca83e07267b001d1821a9911cb41da26c6f9ed5c05a827088bc7",

@@ -3,12 +3,13 @@
 var core = require("./core.js");
 var BASE = "http://127.0.0.1:17643";
 var FILE = "$sandbox/doubao-helper-pairing.json";
-var GUIDE = "https://github.com/Z2U35/bob-plugin-doubao-web#安装";
+var GUIDE = "https://github.com/Z2U35/bob-plugin-doubao-web#login-helper";
+var LOGIN_URL = "doubaobob://login";
 
 function error(key, code) {
     var value = core.fail(key, "secretKey");
     if (code && /^\d{6}$/.test(code)) value.message += " " + code;
-    value.troubleshootingLink = key === "helperLogin" ? "doubaobob://login" : GUIDE;
+    value.troubleshootingLink = key === "helperLogin" ? LOGIN_URL : GUIDE;
     return value;
 }
 
@@ -98,4 +99,4 @@ async function showLogin(host, token, signal) {
     try { await call(host, "/v1/login", {}, token, signal); } catch (_) {}
 }
 
-module.exports = { credentials: credentials, showLogin: showLogin, BASE: BASE, FILE: FILE };
+module.exports = { credentials: credentials, showLogin: showLogin, BASE: BASE, FILE: FILE, LOGIN_URL: LOGIN_URL };

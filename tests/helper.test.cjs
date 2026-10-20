@@ -5,6 +5,7 @@ var assert = require("node:assert/strict");
 var helper = require("../plugin/helper.js");
 var core = require("../plugin/core.js");
 var runner = require("../plugin/runner.js");
+var messages = require("../plugin/messages.js");
 var fake = require("./fake-bob.cjs");
 var token = "a".repeat(64);
 var requestId = "b".repeat(64);
@@ -116,7 +117,9 @@ test("helper credentials drive the existing direct-to-Doubao translation flow", 
         cookie: "sessionid=FAKE_HELPER_SESSION", userAgent: "WebKit Fixture"
     } }], { token: token });
     var replies = [];
-    await runner.translate(host, { loginMode: "helper" }, {
+    await runner.translate(host, {
+        loginMode: "helper", cookie: "sessionid=FAKE_MANUAL_COOKIE", userAgent: "Manual Browser"
+    }, {
         text: "Hello", from: "en", to: "zh-Hans", onCompletion: function (value) { replies.push(value); }
     });
     assert.ok(replies[0].result);
@@ -126,6 +129,65 @@ test("helper credentials drive the existing direct-to-Doubao translation flow", 
     assert.equal(host.calls[0].url, helper.BASE + "/v1/session");
     assert.equal(host.calls[0].body, undefined);
     assert.equal(JSON.stringify(host.writes).includes("FAKE_HELPER_SESSION"), false);
+});
+
+test("manual and legacy auto with a Cookie do not read or contact a paired helper", async function () {
+    for (var mode of ["manual", "auto"]) {
+        var host = hostWith([], { token: token });
+        var originalRead = host.file.read;
+        host.file.read = function (path) {
+            assert.notEqual(path, helper.FILE);
+            return originalRead(path);
+        };
+        var replies = [];
+        await runner.translate(host, { loginMode: mode, cookie: "sessionid=FAKE_MANUAL_COOKIE" }, {
+            text: "Hello", from: "en", to: "zh-Hans", onCompletion: function (value) { replies.push(value); }
+        });
+        assert.ok(replies[0].result);
+        assert.equal(host.calls.length, 2);
+        assert.ok(host.calls.every(function (call) { return call.url.startsWith("https://www.doubao.com/"); }));
+        assert.ok(host.calls[1].header.Cookie.includes("FAKE_MANUAL_COOKIE"));
+    }
+});
+
+test("explicit legacy auto mode still uses the helper when Cookie is empty", async function () {
+    var host = hostWith([{ status: 200, data: { cookie: "sessionid=FAKE_HELPER_SESSION" } }], { token: token });
+    var results = [];
+    await runner.validate(host, { loginMode: "auto", cookie: "  " }, function (value) { results.push(value); });
+    assert.deepEqual(results, [{ result: true }]);
+    assert.equal(host.calls[0].url, helper.BASE + "/v1/session");
+    assert.ok(host.calls[2].header.Cookie.includes("FAKE_HELPER_SESSION"));
+});
+
+test("switching from helper to manual keeps pairing intact but stops using its session", async function () {
+    var host = hostWith([{ status: 200, data: { cookie: "sessionid=FAKE_HELPER_SESSION" } }], { token: token });
+    var results = [];
+    var completion = function (value) { results.push(value); };
+    await runner.validate(host, { loginMode: "helper" }, completion);
+    var pairing = host.files.get(helper.FILE);
+    var previousCalls = host.calls.length;
+    await runner.validate(host, { loginMode: "manual", cookie: "sessionid=FAKE_MANUAL_COOKIE" }, completion);
+    assert.deepEqual(results, [{ result: true }, { result: true }]);
+    var manualCalls = host.calls.slice(previousCalls);
+    assert.equal(manualCalls.length, 2);
+    manualCalls.forEach(function (call) {
+        assert.ok(call.url.startsWith("https://www.doubao.com/"));
+        assert.ok(call.header.Cookie.includes("FAKE_MANUAL_COOKIE"));
+        assert.equal(call.header.Cookie.includes("FAKE_HELPER_SESSION"), false);
+    });
+    assert.equal(host.files.get(helper.FILE), pairing);
+});
+
+test("helper mode does not silently use a manual Cookie when the helper is offline", async function () {
+    var host = hostWith([{ error: true }], { token: token });
+    var results = [];
+    await runner.validate(host, { loginMode: "helper", cookie: "sessionid=FAKE_MANUAL_COOKIE" },
+        function (value) { results.push(value); });
+    assert.equal(results[0].result, false);
+    assert.equal(results[0].error.message, messages.helperOffline);
+    assert.equal(results[0].error.troubleshootingLink, "https://github.com/Z2U35/bob-plugin-doubao-web#login-helper");
+    assert.equal(host.calls.length, 1);
+    assert.equal(host.calls[0].header.Cookie, undefined);
 });
 
 test("an expired upstream helper session opens login once and preserves the auth error", async function () {
@@ -143,5 +205,7 @@ test("an expired upstream helper session opens login once and preserves the auth
     });
     assert.equal(replies.length, 1);
     assert.equal(replies[0].error.type, "secretKey");
+    assert.equal(replies[0].error.message, messages.helperLogin + " (710012001)");
+    assert.equal(replies[0].error.troubleshootingLink, "doubaobob://login");
     assert.equal(host.calls.at(-1).url, helper.BASE + "/v1/login");
 });

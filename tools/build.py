@@ -3,9 +3,11 @@
 import argparse
 import hashlib
 import json
+import plistlib
 import re
 import runpy
 import subprocess
+import tempfile
 import time
 import zipfile
 from datetime import datetime
@@ -37,11 +39,24 @@ def read_report(path):
     return data
 
 
+def test_helper_core():
+    with tempfile.TemporaryDirectory(prefix="doubao-helper-tests-") as directory:
+        binary = Path(directory) / "helper-tests"
+        subprocess.run([
+            "xcrun", "swiftc", "-swift-version", "5",
+            str(ROOT / "helper/BridgeCore.swift"), str(ROOT / "helper/tests/CoreTests.swift"),
+            "-o", str(binary)
+        ], check=True)
+        result = subprocess.run([str(binary)], check=True, text=True, capture_output=True)
+        return int(re.search(r"(\d+) checks passed", result.stdout).group(1))
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--smoke-report", type=Path)
     parser.add_argument("--helper-http-report", type=Path)
+    parser.add_argument("--test-helper", action="store_true", help="Run synthetic Swift core tests without opening the helper")
     parser.add_argument("--write-appcast", action="store_true")
     args = parser.parse_args()
     hygiene = runpy.run_path(str(ROOT / "tools/check-public-tree.py"))
@@ -59,6 +74,9 @@ def main():
         print(tests.stderr)
         raise SystemExit(tests.returncode)
     count = int(re.search(r"^# tests (\d+)$", tests.stdout, re.M).group(1))
+    helper_checks = test_helper_core() if args.test_helper else None
+    helper_info = plistlib.loads((ROOT / "helper/Info.plist").read_bytes())
+    helper_version = helper_info["CFBundleShortVersionString"]
     smoke = read_report(args.smoke_report)
     http = read_report(args.helper_http_report)
     output = args.output_dir.resolve()
@@ -76,7 +94,7 @@ def main():
         previous = json.loads(appcast.read_text()).get("versions", []) if appcast.exists() else []
         current = {
             "version": version,
-            "desc": "测试预览版：新增 macOS 官方网页登录助手、显式本机配对、自动读取登录态；保留手动 Cookie。助手未经过 Apple 公证，真实账号翻译待验证。",
+            "desc": info["summary"] + "真实账号翻译尚待人工验收。",
             "sha256": digest,
             "url": REPO + "/releases/download/v" + version + "/" + plugin.name,
             "minBobVersion": info["minBobVersion"],
@@ -93,6 +111,10 @@ def main():
         for name in hygiene["FILES"] if (ROOT / name).exists()
     }
     source_entries[base + "-source/test-results.tap"] = tests.stdout.encode()
+    if helper_checks is not None:
+        source_entries[base + "-source/helper-core-tests.txt"] = (
+            f"Helper {helper_version} core: {helper_checks} synthetic checks passed\n"
+        ).encode()
     if smoke:
         source_entries[base + "-source/anonymous-smoke.json"] = (json.dumps(smoke, indent=2) + "\n").encode()
     archive(source, source_entries)
@@ -101,18 +123,24 @@ def main():
     native_path = output / "helper-build.json"
     native = json.loads(native_path.read_text()) if native_path.exists() else {}
     if native:
-        assert native["version"] == version
+        assert native["version"] == helper_version
     report = output / "TEST-REPORT.md"
     now = datetime.now(ZoneInfo("Asia/Shanghai")).isoformat(timespec="seconds")
     network = "未执行"
     if smoke:
         network = f"HTTP {smoke['httpStatus']}，代码 {smoke['upstreamCode']}；匿名测试通过={smoke['passed']}"
-    native_text = f"{native['coreChecks']} 项通过；arm64 / x86_64 通用包" if native else "未提供原生构建记录"
+    if helper_checks is not None:
+        native_text = f"{helper_checks} 项通过；助手 {helper_version}，仅使用合成凭证"
+    elif native:
+        native_text = f"{native['coreChecks']} 项通过（来自助手 {helper_version} 构建记录）"
+    else:
+        native_text = "未执行，也未提供原生构建记录"
     http_text = f"{http['checksPassed']} 项通过；未配对、未提供登录凭证" if http else "未执行"
     report.write_text(
         f"# 测试预览版验证记录\n\n"
         f"- 构建时间：{now}\n"
         f"- 插件版本：{version}；最低 Bob 版本：{info['minBobVersion']}\n"
+        f"- 默认登录方式：手动 Cookie；原有 {helper_version} 登录助手保留为备选。\n"
         f"- JavaScript 语法检查：通过。\n"
         f"- JavaScript 自动化测试：{count}/{count} 通过。\n"
         f"- Swift 原生核心测试：{native_text}。\n"
@@ -126,11 +154,11 @@ def main():
         "- 没有在 Bob 原生网络环境下验证账号翻译成功。\n"
         "- 三种翻译后端尚未逐个完成真实账号验证。\n"
         "- 网页登录入口、会话持续时间、风控和服务可用性不受本插件保证。\n\n"
-        "本次以测试预览版发布。离线模拟、匿名探测和扫码入口显示都不等同于完整登录翻译验收。\n",
+        "本次为私有测试预览包，不自动改为 public。离线模拟、匿名探测和扫码入口显示都不等同于完整登录翻译验收。\n",
         encoding="utf-8"
     )
     artifacts = [plugin, source, guide, report]
-    helper_zip = output / ("DoubaoLoginHelper-" + version + "-macos-universal.zip")
+    helper_zip = output / ("DoubaoLoginHelper-" + helper_version + "-macos-universal.zip")
     if helper_zip.exists():
         assert hashlib.sha256(helper_zip.read_bytes()).hexdigest() == native["sha256"]
         artifacts.append(helper_zip)
