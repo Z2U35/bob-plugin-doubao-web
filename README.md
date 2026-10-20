@@ -45,7 +45,7 @@
 
 如果你希望图形化扫码登录且免去手动提取 Cookie 的步骤，可以使用登录助手：
 
-1. 下载并解压 **Doubao Login Helper**，将 App 移入「应用程序」文件夹并打开。
+1. 下载并解压 **[Doubao Login Helper v0.2.0（Apple Silicon / Intel 通用版）](https://github.com/Z2U35/bob-plugin-doubao-web/releases/download/v0.2.0/DoubaoLoginHelper-0.2.0-macos-universal.zip)**，将 App 移入「应用程序」文件夹并打开。该版本可搭配 Bob 插件 v0.2.1 使用。
 2. 在助手窗口中按提示登录豆包账号。
 3. 在 Bob 插件配置中，将「登录方式」改为 **「登录助手」**。
 4. 点击 Bob 插件中的「验证」，核对 Bob 与助手弹出的 6 位配对码并确认允许。
