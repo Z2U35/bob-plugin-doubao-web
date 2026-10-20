@@ -96,7 +96,7 @@ def main():
     if smoke:
         source_entries[base + "-source/anonymous-smoke.json"] = (json.dumps(smoke, indent=2) + "\n").encode()
     archive(source, source_entries)
-    guide = output / "README-安装说明.md"
+    guide = output / "INSTALL.md"
     guide.write_bytes((ROOT / "README.md").read_bytes())
     native_path = output / "helper-build.json"
     native = json.loads(native_path.read_text()) if native_path.exists() else {}
