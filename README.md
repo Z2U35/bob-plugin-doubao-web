@@ -35,7 +35,7 @@
 1. 在常用浏览器中登录 [豆包官网](https://www.doubao.com/)。
 2. 按 `F12` 或右键打开浏览器的**开发者工具**，切换到 **Network / 网络** 标签页，刷新网页。
 3. 选中任意一条发往 `https://www.doubao.com/` 的请求，在 **Headers / 标头** 中找到 **Request Headers / 请求标头** 下的 `Cookie`。
-4. 复制该 `Cookie` 的完整值（格式如 `key1=value1; key2=value2`）。
+4. 复制该 `Cookie` 的完整值。
 5. 粘贴到 Bob 插件配置的 **「Cookie」** 输入框中。
 6. 点击「验证」，测试通过后即可开始使用。
 
