@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 FILES = [
     ".gitignore", ".github/workflows/test.yml",
-    "README.md", "DEVELOPMENT.md", "NOTICE.md", "SECURITY.md", "CHANGELOG.md",
+    "README.md", "DEVELOPMENT.md", "NOTICE.md", "SECURITY.md", "CHANGELOG.md", "LICENSE",
     "appcast.json",
     "plugin/info.json", "plugin/main.js", "plugin/core.js", "plugin/helper.js",
     "plugin/runner.js", "plugin/messages.js",

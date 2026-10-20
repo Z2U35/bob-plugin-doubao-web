@@ -55,6 +55,10 @@ Plugin and helper versions are independent: update plugin metadata for plugin ch
 Info.plist/main.swift only when releasing a new helper. Also update README links and release notes.
 Build, inspect archives, commit the generated appcast,
 then publish the exact matching assets to the GitHub Release. Do not amend published assets silently.
+Upload only the Bob `.bobplugin` and the optional login-helper ZIP to the release.
+Keep generated installation guides, test reports, checksum files and custom source ZIPs local;
+GitHub already supplies source archives from the release tag.
+Put the helper ZIP in the same release as the plugin and point README downloads to that release's assets.
 Keep this repository private during testing. A private prerelease is not public acceptance; do not change
 visibility or claim Bob-list inclusion automatically after CI. Anonymous appcast access is not guaranteed
 for private repositories, so authorized testers should download the plugin manually.

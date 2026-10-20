@@ -17,8 +17,8 @@
 ## 下载
 
 - **[Bob 插件下载 (v0.2.1)](https://github.com/Z2U35/bob-plugin-doubao-web/releases/download/v0.2.1/DoubaoWebTranslate-0.2.1.bobplugin)**
-- **[版本发布页与更新日志](https://github.com/Z2U35/bob-plugin-doubao-web/releases)**
-- **[可选：macOS 登录助手 (v0.2.0, Apple Silicon / Intel 通用)](https://github.com/Z2U35/bob-plugin-doubao-web/releases/download/v0.2.0/DoubaoLoginHelper-0.2.0-macos-universal.zip)**
+- **[v0.2.1 发布页与更新日志](https://github.com/Z2U35/bob-plugin-doubao-web/releases/tag/v0.2.1)**
+- **[可选：macOS 登录助手（Apple Silicon / Intel 通用）](https://github.com/Z2U35/bob-plugin-doubao-web/releases/download/v0.2.1/DoubaoLoginHelper-0.2.0-macos-universal.zip)**
 
 > **环境要求**：Bob 1.21.0 或更高版本。若使用登录助手，需要 macOS 13.0+。
 
@@ -45,7 +45,7 @@
 
 如果你希望图形化扫码登录且免去手动提取 Cookie 的步骤，可以使用登录助手：
 
-1. 下载并解压 **[Doubao Login Helper v0.2.0（Apple Silicon / Intel 通用版）](https://github.com/Z2U35/bob-plugin-doubao-web/releases/download/v0.2.0/DoubaoLoginHelper-0.2.0-macos-universal.zip)**，将 App 移入「应用程序」文件夹并打开。该版本可搭配 Bob 插件 v0.2.1 使用。
+1. 从 v0.2.1 Release 的 Assets 下载并解压 **[Doubao Login Helper（Apple Silicon / Intel 通用版）](https://github.com/Z2U35/bob-plugin-doubao-web/releases/download/v0.2.1/DoubaoLoginHelper-0.2.0-macos-universal.zip)**，将 App 移入「应用程序」文件夹并打开。
 2. 在助手窗口中按提示登录豆包账号。
 3. 在 Bob 插件配置中，将「登录方式」改为 **「登录助手」**。
 4. 点击 Bob 插件中的「验证」，核对 Bob 与助手弹出的 6 位配对码并确认允许。
