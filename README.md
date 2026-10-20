@@ -22,6 +22,8 @@
 
 > **环境要求**：Bob 1.21.0 或更高版本。若使用登录助手，需要 macOS 13.0+。
 
+更新插件时，从 Release 下载并安装新版 `.bobplugin`。
+
 ---
 
 ## 安装与配置
@@ -86,11 +88,11 @@ node --test tests/*.test.cjs
 # 构建 macOS 登录助手
 python3 tools/build-helper.py --output-dir dist --build-dir build
 
-# 打包 Bob 插件并生成 appcast.json
-python3 tools/build.py --output-dir dist --write-appcast
+# 打包 Bob 插件
+python3 tools/build.py --output-dir dist
 ```
 
-更多开发细节请参考 [DEVELOPMENT.md](DEVELOPMENT.md)。
+同时检查登录助手核心逻辑时，加上 `--test-helper`。Release 只上传 `.bobplugin` 和可选的助手 ZIP。
 
 ---
 

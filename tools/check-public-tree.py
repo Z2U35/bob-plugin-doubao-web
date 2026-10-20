@@ -8,8 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 FILES = [
     ".gitignore", ".github/workflows/test.yml",
-    "README.md", "DEVELOPMENT.md", "NOTICE.md", "SECURITY.md", "CHANGELOG.md", "LICENSE",
-    "appcast.json",
+    "README.md", "LICENSE",
     "plugin/info.json", "plugin/main.js", "plugin/core.js", "plugin/helper.js",
     "plugin/runner.js", "plugin/messages.js",
     "tests/core.test.cjs", "tests/runner.test.cjs", "tests/helper.test.cjs", "tests/fake-bob.cjs",
@@ -23,8 +22,6 @@ FILES = [
 def check():
     for name in FILES:
         file = ROOT / name
-        if name == "appcast.json" and not file.exists():
-            continue
         data = file.read_text(encoding="utf-8")
         if name != "tools/check-public-tree.py":
             assert not re.search(r"/Users/[^/\s]+/", data), f"Private filesystem path: {name}"

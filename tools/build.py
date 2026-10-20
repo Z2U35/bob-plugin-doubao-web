@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test and package allowlisted public sources; optionally generate Bob appcast."""
+"""Test and package the Bob plugin and allowlisted sources."""
 import argparse
 import hashlib
 import json
@@ -8,14 +8,12 @@ import re
 import runpy
 import subprocess
 import tempfile
-import time
 import zipfile
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
-REPO = "https://github.com/Z2U35/bob-plugin-doubao-web"
 STAMP = (2026, 10, 20, 0, 0, 0)
 PLUGIN_FILES = ["info.json", "main.js", "core.js", "runner.js", "messages.js", "helper.js"]
 
@@ -57,7 +55,6 @@ def main():
     parser.add_argument("--smoke-report", type=Path)
     parser.add_argument("--helper-http-report", type=Path)
     parser.add_argument("--test-helper", action="store_true", help="Run synthetic Swift core tests without opening the helper")
-    parser.add_argument("--write-appcast", action="store_true")
     args = parser.parse_args()
     hygiene = runpy.run_path(str(ROOT / "tools/check-public-tree.py"))
     hygiene["check"]()
@@ -85,25 +82,9 @@ def main():
     base = "DoubaoWebTranslate-" + version
     plugin = output / (base + ".bobplugin")
     entries = {name: (ROOT / "plugin" / name).read_bytes() for name in PLUGIN_FILES}
-    for name in ("README.md", "NOTICE.md", "SECURITY.md"):
+    for name in ("README.md", "LICENSE"):
         entries[name] = (ROOT / name).read_bytes()
     archive(plugin, entries)
-    digest = hashlib.sha256(plugin.read_bytes()).hexdigest()
-    appcast = ROOT / "appcast.json"
-    if args.write_appcast:
-        previous = json.loads(appcast.read_text()).get("versions", []) if appcast.exists() else []
-        current = {
-            "version": version,
-            "desc": info["summary"] + "真实账号翻译尚待人工验收。",
-            "sha256": digest,
-            "url": REPO + "/releases/download/v" + version + "/" + plugin.name,
-            "minBobVersion": info["minBobVersion"],
-            "timestamp": int(time.time() * 1000),
-        }
-        appcast.write_text(json.dumps({
-            "identifier": info["identifier"],
-            "versions": [current] + [item for item in previous if item["version"] != version]
-        }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     hygiene["check"]()
     source = output / (base + "-source.zip")
     source_entries = {
@@ -149,12 +130,8 @@ def main():
         f"- 源码公开检查：显式文件白名单通过；未打包浏览器数据、Cookie、配对文件或截图。\n"
         f"- ZIP 完整性检查通过；插件元数据位于 ZIP 根目录。\n"
         f"- 助手签名：ad-hoc；没有 Developer ID 签名或 Apple 公证。\n\n"
-        "## 未完成的真实验收\n\n"
-        "- 没有使用真实账号完成扫码登录，不声称登录成功。\n"
-        "- 没有在 Bob 原生网络环境下验证账号翻译成功。\n"
-        "- 三种翻译后端尚未逐个完成真实账号验证。\n"
-        "- 网页登录入口、会话持续时间、风控和服务可用性不受本插件保证。\n\n"
-        "本次为私有测试预览包，不自动改为 public。离线模拟、匿名探测和扫码入口显示都不等同于完整登录翻译验收。\n",
+        "## 待验证\n\n"
+        "- 真实账号在 Bob 内的登录、翻译及三种翻译后端。\n",
         encoding="utf-8"
     )
     artifacts = [plugin, source, guide, report]

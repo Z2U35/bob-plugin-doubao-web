@@ -7,7 +7,6 @@
   "icon": "132",
   "author": "Z2U35",
   "homepage": "https://github.com/Z2U35/bob-plugin-doubao-web",
-  "appcast": "https://raw.githubusercontent.com/Z2U35/bob-plugin-doubao-web/main/appcast.json",
   "minBobVersion": "1.21.0",
   "icons": [
     { "identifier": "doubao", "type": "builtIn", "builtInId": "132" },

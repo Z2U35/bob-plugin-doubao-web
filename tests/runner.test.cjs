@@ -335,7 +335,7 @@ test("metadata is valid and credentials have an empty secure input", function ()
     assert.match(info.version, /^[a-z0-9.]+$/);
     assert.equal(info.minBobVersion, "1.21.0");
     assert.equal(info.category, "translate");
-    assert.equal(info.appcast, "https://raw.githubusercontent.com/Z2U35/bob-plugin-doubao-web/main/appcast.json");
+    assert.equal(Object.prototype.hasOwnProperty.call(info, "appcast"), false);
     var cookie = info.options.find(function (option) { return option.identifier === "cookie"; });
     assert.equal(cookie.defaultValue, "");
     assert.equal(cookie.textConfig.type, "secure");
