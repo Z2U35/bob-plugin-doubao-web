@@ -1,0 +1,22 @@
+name: Tests
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: "22"
+      - run: node --test tests/*.test.cjs
+      - name: Native cookie and bridge policy tests
+        run: |
+          mkdir -p build
+          xcrun swiftc -swift-version 5 helper/BridgeCore.swift helper/tests/CoreTests.swift -o build/helper-tests
+          build/helper-tests
+      - name: Public tree hygiene
+        run: python3 tools/check-public-tree.py

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key><string>com.z2u35.doubaobob.login</string>
+    <key>CFBundleName</key><string>Doubao Login Helper</string>
+    <key>CFBundleDisplayName</key><string>豆包登录助手</string>
+    <key>CFBundleExecutable</key><string>DoubaoLoginHelper</string>
+    <key>CFBundlePackageType</key><string>APPL</string>
+    <key>CFBundleShortVersionString</key><string>0.2.0</string>
+    <key>CFBundleVersion</key><string>2</string>
+    <key>LSMinimumSystemVersion</key><string>13.0</string>
+    <key>LSUIElement</key><true/>
+    <key>NSHighResolutionCapable</key><true/>
+    <key>CFBundleURLTypes</key>
+    <array><dict>
+        <key>CFBundleURLName</key><string>Doubao Bob Login</string>
+        <key>CFBundleURLSchemes</key><array><string>doubaobob</string></array>
+    </dict></array>
+</dict>
+</plist>
