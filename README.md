@@ -92,7 +92,7 @@ python3 tools/build-helper.py --output-dir dist --build-dir build
 python3 tools/build.py --output-dir dist
 ```
 
-同时检查登录助手核心逻辑时，加上 `--test-helper`。Release 只上传 `.bobplugin` 和可选的助手 ZIP。
+
 
 ---
 
